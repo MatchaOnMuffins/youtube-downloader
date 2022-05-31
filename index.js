@@ -28,7 +28,6 @@ function down(ref,res,file_path) {
             tracker.video = {downloaded, total};
         });
 
-// Prepare the progress bar
     let progressbarHandle = null;
     const progressbarInterval = 1000;
     const showProgress = () => {
