@@ -9,7 +9,7 @@ const ffmpeg = require("ffmpeg-static");
 const app = express();
 const port = 80;
 const rick = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
-
+app.set('trust proxy', true)
 function down(ref,res,file_path) {
     const tracker = {
         start: Date.now(),
@@ -119,10 +119,12 @@ app.get('/watch', function (req, res) {
             }
         } else {
             res.redirect(rick);
+            console.log(`Rick Rolled${req.ip}`);
         }
     }
     else if (queryObject.v === undefined) {
         res.redirect(rick);
+        console.log(`Rick Rolled ${req.ip}`);
     }
 
 })
@@ -140,10 +142,13 @@ app.get('/download',function (req, res) {
         }
         else{
             res.redirect(rick);
+            console.log(`Rick Rolled ${req.ip}`);
+
         }
     }
     else{
         res.redirect(rick);
+        console.log(`Rick Rolled ${req.ip}`);
     }
 
 
