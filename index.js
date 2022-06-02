@@ -180,7 +180,7 @@ app.get("/repos", async (req, res) => {
         //console.log(result);
         const repos = result.data.map((repo) => ({
             name: repo.name,
-            url: repo.url,
+            url: repo.html_url,
             description: repo.description,
         }));
         res.render("repos", {
