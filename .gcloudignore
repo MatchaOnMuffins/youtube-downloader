@@ -15,3 +15,5 @@
 .idea
 # Node.js dependencies:
 node_modules/
+tests
+backup/
