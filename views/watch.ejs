@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link href="/css/styles.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <title>Welcome to YTDL</title>
+    <link href="/images/favicon.ico" rel="icon" type="image/x-icon">
+</head>
+<body>
+<div style="text-align: center;">
+    <h1>Please Wait For a Bit</h1>
+    <a id ="some-button" class="button" href="/download?v=<%=link%>">Download Video</a>
+    <script>
+        document.getElementById("some-button").style.display = "none";
+        function stopInt(intv) {
+            clearInterval(intv);
+            console.log("Interval Stopped");
+        }
+        function showStuff() {
+            fetch(`/status?v=<%=link%>`)
+                .then(response =>{
+                    if(response.status !== 201){
+                        console.log("oops");
+                    }
+                    return response.json();
+                })
+                .then(json => {
+                    console.log('parsed json', json) // access json.body here
+                    console.log(json.status);
+                    if(`${json.status}` === 'done'){
+                        document.getElementById("some-button").style.display = "inline";
+                        stopInt(myInt); //stops interval
+                    }
+                })
+        }
+        const myInt = setInterval(showStuff,1000)
+    </script>
+</div>
+</body>
+</html>
