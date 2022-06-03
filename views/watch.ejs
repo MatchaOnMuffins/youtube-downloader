@@ -9,8 +9,12 @@
 <body>
 <div style="text-align: center;">
     <h1>Please Wait For a Bit</h1>
-    <a id ="some-button" class="button" href="/download?v=<%=link%>">Download Video</a>
+    <img class="animated-gif" id = "loading-screen" src="/images/load.gif">
+    <br>
+
+    <a id ="some-button" class="button-1" href="/download?v=<%=link%>">Download Video</a>
     <script>
+        document.getElementById("loading-screen").style.display = "inline";
         document.getElementById("some-button").style.display = "none";
         function stopInt(intv) {
             clearInterval(intv);
@@ -19,7 +23,7 @@
         function showStuff() {
             fetch(`/status?v=<%=link%>`)
                 .then(response =>{
-                    if(response.status !== 201){
+                    if(response.status !== 200){
                         console.log("oops");
                     }
                     return response.json();
@@ -28,6 +32,7 @@
                     console.log('parsed json', json) // access json.body here
                     console.log(json.status);
                     if(`${json.status}` === 'done'){
+                        document.getElementById("loading-screen").style.display = "none";
                         document.getElementById("some-button").style.display = "inline";
                         stopInt(myInt); //stops interval
                     }
