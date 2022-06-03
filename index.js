@@ -93,13 +93,14 @@ app.post("/login", (req, res) => {
 });
 
 app.get('/watch', function (req, res) {
+    console.log(`request received from ${req.ip}`);
     const queryObject = url.parse(req.url, true).query;
     let video_id = queryObject.v;
     if (video_id != null) {
         if (muxer.validateID(`${video_id}`)) {
             // if v value given and is valid
             let exists = false;
-            let vid_path = `${video_id}.mkv`
+            let vid_path = `${video_id}.mkv`;
             let file_path = `${__dirname}/download/${vid_path}`;
             try{ //nominal entry
                 axios.get(`https://api.unblockvideos.com/youtube_restrictions?id=${video_id}`)
@@ -111,7 +112,7 @@ app.get('/watch', function (req, res) {
                             console.log("Not Available for download");
                             res.render("error",{
                                 error:"Regional Restrictions"
-                            })
+                            });
                             cont = false;
                         }
 
