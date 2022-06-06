@@ -10,7 +10,7 @@ const app = express();
 const axios = require('axios');
 const bodyParser = require("body-parser");
 const https = require("https");
-const port = 8443;
+const port = 443;
 const rick = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
 app.use(bodyParser.urlencoded({extended: false}));
 app.set('trust proxy', true)
