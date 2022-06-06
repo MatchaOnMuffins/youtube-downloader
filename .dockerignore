@@ -117,4 +117,7 @@ dist
 .pnp.*
 .idea
 backup/
+auth/cert.pem
+auth/key.pem
+
 

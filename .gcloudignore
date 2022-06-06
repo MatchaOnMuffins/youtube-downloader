@@ -17,3 +17,5 @@
 node_modules/
 tests
 backup/
+auth/cert.pem
+auth/key.pem

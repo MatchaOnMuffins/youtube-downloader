@@ -9,22 +9,24 @@ const ffmpeg = require("ffmpeg-static");
 const app = express();
 const axios = require('axios');
 const bodyParser = require("body-parser");
-const port = 80;
+const https = require("https");
+const port = 8443;
 const rick = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
-app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.urlencoded({extended: false}));
 app.set('trust proxy', true)
 app.use(express.static('public'));
 app.set("view engine", "ejs");
+
 
 function del() {
     glob("download/*.mkv", {}, function (er, files) {
         files.forEach(function (x) {
             console.log(x);
-            let id = x.substring(x.length-15, x.length-4)
+            let id = x.substring(x.length - 15, x.length - 4)
             let status = `status/${id}.status`
             axios.get(`/status?v=${id}`)
-                .then(response=> {
-                    if(response.data.status === 'done'){
+                .then(response => {
+                    if (response.data.status === 'done') {
                         fs.unlinkSync(x);
                         fs.unlinkSync(status);
                     }
@@ -33,13 +35,14 @@ function del() {
     });
 }
 
-setInterval(function (){
+setInterval(function () {
     del()
 }, 1800000)
 
 
 function down(ref, res, file_path) {
-    fs.writeFile(`${__dirname}/status/${ref}.status`, "",function (){})
+    fs.writeFile(`${__dirname}/status/${ref}.status`, "", function () {
+    })
     try {
         const audio = ytdl(ref, {quality: 'highestaudio'})
         const video = ytdl(ref, {quality: 'highestvideo'})
@@ -70,18 +73,18 @@ function down(ref, res, file_path) {
                 // file written successfully
             });
         });
-        ffmpegProcess.on('error', function(err) {
+        ffmpegProcess.on('error', function (err) {
             console.log(err)
         });
         audio.pipe(ffmpegProcess.stdio[4]);
         video.pipe(ffmpegProcess.stdio[5]);
-    }catch (e) {
+    } catch (e) {
         console.log(e);
     }
 }
 
 app.post("/login", (req, res) => {
-    const { name, password } = req.body;
+    const {name, password} = req.body;
 
     if (name === "admin" && password === "admin") {
         res.render("success", {
@@ -102,16 +105,16 @@ app.get('/watch', function (req, res) {
             let exists = false;
             let vid_path = `${video_id}.mkv`;
             let file_path = `${__dirname}/download/${vid_path}`;
-            try{ //nominal entry
+            try { //nominal entry
                 axios.get(`https://api.unblockvideos.com/youtube_restrictions?id=${video_id}`)
-                    .then(r=> {
+                    .then(r => {
                         let cont = true;
                         const dat = r.data[0].blocked;
 
-                        if(dat.includes("US")){
+                        if (dat.includes("US")) {
                             console.log("Not Available for download");
-                            res.render("error",{
-                                error:"Regional Restrictions"
+                            res.render("error", {
+                                error: "Regional Restrictions"
                             });
                             cont = false;
                         }
@@ -124,36 +127,33 @@ app.get('/watch', function (req, res) {
                             exists = false;
                         }
                         if (!exists && cont) {
-                            res.render(`watch`,{
-                                link:video_id
+                            res.render(`watch`, {
+                                link: video_id
                             })
                             down(video_id, res, file_path);
-                        }
-                        else if(exists) {
+                        } else if (exists) {
                             //res.redirect(`/download?v=${queryObject.v}`);
-                            res.render(`watch`,{
-                                link:video_id
+                            res.render(`watch`, {
+                                link: video_id
                             })
-                        }
-                        else if(!cont){
-                            res.render("error",{
-                                error:"Other Error"
+                        } else if (!cont) {
+                            res.render("error", {
+                                error: "Other Error"
                             })
                         }
                     })
-            }
-            catch (e) {
+            } catch (e) {
                 console.log(e);
             }
 
         } else {
-            res.render("error",{
-                error:"Invalid ID"
+            res.render("error", {
+                error: "Invalid ID"
             })
         }
     } else if (queryObject.v === undefined) {
-        res.render("error",{
-            error:"No Query Specified"
+        res.render("error", {
+            error: "No Query Specified"
         })
     }
 
@@ -168,7 +168,7 @@ app.get('/', function (req, res) {
     res.render("index");
 })
 
-app.get('/status',function (req, res) {
+app.get('/status', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     let video_id = queryObject.v;
     if (video_id != null) {
@@ -180,13 +180,12 @@ app.get('/status',function (req, res) {
                     return;
                 }
                 let re = {
-                    "status":data
+                    "status": data
                 };
                 res.status(200).json(re);
             });
 
-        }
-        else{
+        } else {
             res.status(403)
         }
     }
@@ -202,16 +201,16 @@ app.get('/download', function (req, res) {
             res.download(filename);
         } else {
             //res.redirect(rick);
-            res.render("error",{
-                error:"Invalid ID"
+            res.render("error", {
+                error: "Invalid ID"
             })
             //console.log(`Rick Rolled ${req.ip}`);
 
         }
     } else {
         //res.redirect(rick);
-        res.render("error",{
-            error:"No Query Specified"
+        res.render("error", {
+            error: "No Query Specified"
         })
         //console.log(`Rick Rolled ${req.ip}`);
     }
@@ -240,6 +239,15 @@ app.get("/repos", async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+const options = {
+    key: fs.readFileSync('auth/key.pem'),
+    cert: fs.readFileSync('auth/cert.pem')
+};
+
+
+const server = https.createServer(options, app);
+server.listen(port, () => {
     console.log(`Youtube downloader listening on port ${port}`)
 })
+
+
