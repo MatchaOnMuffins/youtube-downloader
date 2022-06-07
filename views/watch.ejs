@@ -21,7 +21,7 @@
             console.log("Interval Stopped");
         }
         function showStuff() {
-            fetch(`/status?v=<%=link%>`)
+            fetch(`/status-secure?v=<%=link%>`)
                 .then(response =>{
                     if(response.status !== 200){
                         console.log("oops");

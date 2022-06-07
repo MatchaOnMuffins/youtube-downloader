@@ -20,7 +20,7 @@
     "express": "*",
     "ffmpeg-static": "*",
     "glob": "*",
-    "node-fetch": "*",
+    "materialize-css": "^1.0.0-rc.2",
     "react": "^18.1.0",
     "ytdl-core": "*",
     "ytdl-core-muxer": "*"

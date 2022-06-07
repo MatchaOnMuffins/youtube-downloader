@@ -17,14 +17,15 @@ app.set('trust proxy', true)
 app.use(express.static('public'));
 app.set("view engine", "ejs");
 
+const local_http = express();
 
 function del() {
     glob("download/*.mkv", {}, function (er, files) {
         files.forEach(function (x) {
             console.log(x);
-            let id = x.substring(x.length - 15, x.length - 4)
-            let status = `status/${id}.status`
-            axios.get(`/status?v=${id}`)
+            let id = x.substring(x.length - 15, x.length - 4);
+            let status = `status/${id}.status`;
+            axios.get(`http://localhost/status?v=${id}&redirect=false`)
                 .then(response => {
                     if (response.data.status === 'done') {
                         fs.unlinkSync(x);
@@ -37,7 +38,7 @@ function del() {
 
 setInterval(function () {
     del()
-}, 1800000)
+}, 3600000)
 
 
 function down(ref, res, file_path) {
@@ -86,7 +87,7 @@ function down(ref, res, file_path) {
 app.post("/login", (req, res) => {
     const {name, password} = req.body;
 
-    if (name === "admin" && password === "admin") {
+    if (password === "bingus") {
         res.render("success", {
             username: name,
         });
@@ -94,6 +95,8 @@ app.post("/login", (req, res) => {
         res.render("failure");
     }
 });
+
+
 
 app.get('/watch', function (req, res) {
     console.log(`request received from ${req.ip}`);
@@ -168,7 +171,7 @@ app.get('/', function (req, res) {
     res.render("index");
 })
 
-app.get('/status', function (req, res) {
+app.get('/status-secure', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     let video_id = queryObject.v;
     if (video_id != null) {
@@ -192,19 +195,60 @@ app.get('/status', function (req, res) {
 })
 
 
+
+local_http.get('/status', function (req, res) {
+    const queryObject = url.parse(req.url, true).query;
+    let video_id = queryObject.v;
+    if (video_id != null) {
+        if (muxer.validateID(`${video_id}`)) {
+            fs.readFile(`${__dirname}/status/${video_id}.status`, 'utf8', (err, data) => {
+                if (err) {
+                    //console.error(err);
+                    res.status(500)
+                    return;
+                }
+                let re = {
+                    "status": data
+                };
+                res.status(200).json(re);
+            });
+
+        } else {
+            res.status(403)
+        }
+    }
+})
+
+
+local_http.get('*',function (req, res) {
+    const queryObj = url.parse(req.url, true).query;
+    let redirect = queryObj.redirect
+    if(redirect !== 'false'){
+        res.redirect('https://' + req.headers.host + req.url);
+    }
+
+})
+
+
 app.get('/download', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     if (queryObject.v != null) {
         if (muxer.validateID(queryObject.v + "")) {
             let filename = `${__dirname}/download/${queryObject.v}.mkv`;
-            console.log('downloading');
-            res.download(filename);
+            try {
+                if (fs.existsSync(filename)) {
+                    console.log('Sending File'+filename);
+                    res.download(filename);
+                }
+            } catch (err) {
+                res.status(404).render('404');
+            }
+            // if cache already cleared
         } else {
             //res.redirect(rick);
             res.render("error", {
                 error: "Invalid ID"
             })
-            //console.log(`Rick Rolled ${req.ip}`);
 
         }
     } else {
@@ -244,10 +288,22 @@ const options = {
     cert: fs.readFileSync('auth/cert.pem')
 };
 
+app.use((req, res, next) => {
+    res.status(404).render('404');
+})
+
+local_http.use((req, res, next) => {
+    res.status(404).render('404');
+})
+
 
 const server = https.createServer(options, app);
+
 server.listen(port, () => {
     console.log(`Youtube downloader listening on port ${port}`)
 })
 
+local_http.listen(80,()=>{
+    console.log('LoopBack Server listing on port 80');
+})
 
