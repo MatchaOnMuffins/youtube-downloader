@@ -1,8 +1,17 @@
-<%- include('error_header.ejs') %>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>404 Not Found</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+</head>
+<body>
 <div class="container">
     <div class="row">
-        <h1>An Error Occurred</h1>
+        <h1>404 Not Found</h1>
         <hr>
+        <p>The page you were looking for could not be found.</p>
         <br>
         <p>Please try one of the following:</p>
         <ul>
@@ -12,7 +21,5 @@
             <li>If you have reached this page by clicking a link, please <a href="mailto:admin@rchat.fun">contact us</a>.
             </li>
         </ul>
-        <h3><code>Error: <%= error %></code></h3>
     </div>
 </div>
-<%- include('footer.ejs') %>

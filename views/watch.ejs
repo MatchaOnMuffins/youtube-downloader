@@ -1,45 +1,43 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <link href="/css/styles.css" rel="stylesheet">
-    <meta charset="UTF-8">
-    <title>Welcome to YTDL</title>
-    <link href="/images/favicon.ico" rel="icon" type="image/x-icon">
-</head>
-<body>
-<div style="text-align: center;">
-    <h1>Please Wait For a Bit</h1>
-    <img class="animated-gif" id = "loading-screen" src="/images/load.gif">
+<%- include('header.ejs') %>
+<script>
+    var link = `/status-secure?v=<%= link %>`;
+    var download = "/download?v=<%= link %>";
+</script>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+<div class="container">
     <br>
-
-    <a id ="some-button" class="button-1" href="/download?v=<%=link%>">Download Video</a>
-    <script>
-        document.getElementById("loading-screen").style.display = "inline";
-        document.getElementById("some-button").style.display = "none";
-        function stopInt(intv) {
-            clearInterval(intv);
-            console.log("Interval Stopped");
-        }
-        function showStuff() {
-            fetch(`/status-secure?v=<%=link%>`)
-                .then(response =>{
-                    if(response.status !== 200){
-                        console.log("oops");
-                    }
-                    return response.json();
-                })
-                .then(json => {
-                    console.log('parsed json', json) // access json.body here
-                    console.log(json.status);
-                    if(`${json.status}` === 'done'){
-                        document.getElementById("loading-screen").style.display = "none";
-                        document.getElementById("some-button").style.display = "inline";
-                        stopInt(myInt); //stops interval
-                    }
-                })
-        }
-        const myInt = setInterval(showStuff,1000)
-    </script>
+    <h1 id="status">Getting Ready...</h1>
+    <hr>
+    <div class="row">
+        <div class="col-md-6">
+            <div id="spinners">
+                <div class="spinner-grow text-primary spinner-border m-1" role="status">
+                    <span class="sr-only"></span>
+                </div>
+                <div class="spinner-grow text-primary spinner-border m-1" role="status">
+                    <span class="sr-only"></span>
+                </div>
+                <div class="spinner-grow text-primary spinner-border m-1" role="status">
+                    <span class="sr-only"></span>
+                </div>
+                <div class="spinner-grow text-primary spinner-border m-1" role="status">
+                    <span class="sr-only"></span>
+                </div>
+            </div>
+            <h3><i>Remember our site to quickly download YouTube videos for free</i></h3>
+            <br>
+                <button class="btn btn-primary" id="download_button" disabled type="submit">
+                    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true" onclick="clicks()"></span>
+                    Loading...
+                </button>
+        </div>
+        <div class="col-md-6">
+            <iframe width="480" height="270" src="https://www.youtube.com/embed/<%= link %>"
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+        </div>
+    </div>
 </div>
-</body>
-</html>
+<script src="/js/download_status.js"></script>
+<%- include('footer.ejs') %>

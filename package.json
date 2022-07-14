@@ -1,28 +1,20 @@
 {
   "name": "ytdl",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node ."
+    "start": "NODE_ENV=production node ."
   },
-  "keywords": [
-    "download",
-    "ytdl"
-  ],
   "author": "MatchaOnMuffins",
   "license": "MIT",
-  "description": "",
   "dependencies": {
-    "axios": "*",
-    "body-parser": "*",
-    "dotenv": "*",
-    "ejs": "*",
-    "express": "*",
-    "ffmpeg-static": "*",
-    "glob": "*",
-    "materialize-css": "^1.0.0-rc.2",
-    "react": "^18.1.0",
-    "ytdl-core": "*",
-    "ytdl-core-muxer": "*"
+    "axios": "^0.27.2",
+    "body-parser": "^1.20.0",
+    "ejs": "^3.1.8",
+    "express": "^4.16.4",
+    "ffmpeg-static": "^5.0.2",
+    "glob": "^8.0.3",
+    "ytdl-core": "^4.11.0",
+    "ytdl-core-muxer": "^1.0.1"
   }
 }

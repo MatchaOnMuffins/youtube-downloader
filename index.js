@@ -10,14 +10,16 @@ const app = express();
 const axios = require('axios');
 const bodyParser = require("body-parser");
 const https = require("https");
-const port = 443;
-const rick = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ&ab_channel=RickAstley';
+const port = process.env.NODE_PORT || 443;
 app.use(bodyParser.urlencoded({extended: false}));
 app.set('trust proxy', true)
 app.use(express.static('public'));
 app.set("view engine", "ejs");
+app.disable('x-powered-by');
+const PORT = 80;
 
 const local_http = express();
+local_http.set("view engine", "ejs");
 
 function del() {
     glob("download/*.mkv", {}, function (er, files) {
@@ -47,23 +49,11 @@ function down(ref, res, file_path) {
     try {
         const audio = ytdl(ref, {quality: 'highestaudio'})
         const video = ytdl(ref, {quality: 'highestvideo'})
-        const ffmpegProcess = cp.spawn(ffmpeg, [
-            '-loglevel', '8', '-hide_banner',
-            '-progress', 'pipe:3',
-            '-i', 'pipe:4',
-            '-i', 'pipe:5',
-            '-map', '0:a',
-            '-map', '1:v',
-            '-c:v', 'copy',
-            file_path, //output file path
+        const ffmpegProcess = cp.spawn(ffmpeg, ['-loglevel', '8', '-hide_banner', '-progress', 'pipe:3', '-i', 'pipe:4', '-i', 'pipe:5', '-map', '0:a', '-map', '1:v', '-c:v', 'copy', file_path, //output file path
         ], {
-            windowsHide: true,
-            stdio: [
-                /* Standard: stdin, stdout, stderr */
-                'inherit', 'inherit', 'inherit',
-                /* Custom: pipe:3, pipe:4, pipe:5 */
-                'pipe', 'pipe', 'pipe',
-            ],
+            windowsHide: true, stdio: [/* Standard: stdin, stdout, stderr */
+                'inherit', 'inherit', 'inherit', /* Custom: pipe:3, pipe:4, pipe:5 */
+                'pipe', 'pipe', 'pipe',],
         });
         ffmpegProcess.on('close', () => {
             //res.redirect(`/download?v=${ref}`)
@@ -84,22 +74,9 @@ function down(ref, res, file_path) {
     }
 }
 
-app.post("/login", (req, res) => {
-    const {name, password} = req.body;
-
-    if (password === "bingus") {
-        res.render("success", {
-            username: name,
-        });
-    } else {
-        res.render("failure");
-    }
-});
-
-
 
 app.get('/watch', function (req, res) {
-    console.log(`request received from ${req.ip}`);
+    // console.log(`request received from ${req.ip}`);
     const queryObject = url.parse(req.url, true).query;
     let video_id = queryObject.v;
     if (video_id != null) {
@@ -117,7 +94,7 @@ app.get('/watch', function (req, res) {
                         if (dat.includes("US")) {
                             console.log("Not Available for download");
                             res.render("error", {
-                                error: "Regional Restrictions"
+                                error: "Region Restricted"
                             });
                             cont = false;
                         }
@@ -135,7 +112,6 @@ app.get('/watch', function (req, res) {
                             })
                             down(video_id, res, file_path);
                         } else if (exists) {
-                            //res.redirect(`/download?v=${queryObject.v}`);
                             res.render(`watch`, {
                                 link: video_id
                             })
@@ -159,16 +135,10 @@ app.get('/watch', function (req, res) {
             error: "No Query Specified"
         })
     }
-
-})
-
-app.get('/rick', function (req, res) {
-    res.redirect(rick);
 })
 
 app.get('/', function (req, res) {
-    //res.redirect(rick);
-    res.render("index");
+    res.sendFile(`${__dirname}/pages/index.html`);
 })
 
 app.get('/status-secure', function (req, res) {
@@ -178,7 +148,6 @@ app.get('/status-secure', function (req, res) {
         if (muxer.validateID(`${video_id}`)) {
             fs.readFile(`${__dirname}/status/${video_id}.status`, 'utf8', (err, data) => {
                 if (err) {
-                    //console.error(err);
                     res.status(500)
                     return;
                 }
@@ -187,14 +156,15 @@ app.get('/status-secure', function (req, res) {
                 };
                 res.status(200).json(re);
             });
-
         } else {
             res.status(403)
         }
     }
 })
-
-
+local_http.get('/', function (req, res) {
+    // redirect http to https
+    res.redirect(`https://${req.headers.host}${req.url}`);
+})
 
 local_http.get('/status', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
@@ -220,16 +190,6 @@ local_http.get('/status', function (req, res) {
 })
 
 
-local_http.get('*',function (req, res) {
-    const queryObj = url.parse(req.url, true).query;
-    let redirect = queryObj.redirect
-    if(redirect !== 'false'){
-        res.redirect('https://' + req.headers.host + req.url);
-    }
-
-})
-
-
 app.get('/download', function (req, res) {
     const queryObject = url.parse(req.url, true).query;
     if (queryObject.v != null) {
@@ -237,73 +197,48 @@ app.get('/download', function (req, res) {
             let filename = `${__dirname}/download/${queryObject.v}.mkv`;
             try {
                 if (fs.existsSync(filename)) {
-                    console.log('Sending File'+filename);
+                    console.log('Sending File' + filename);
                     res.download(filename);
                 }
             } catch (err) {
                 res.status(404).render('404');
             }
-            // if cache already cleared
         } else {
-            //res.redirect(rick);
             res.render("error", {
                 error: "Invalid ID"
             })
 
         }
     } else {
-        //res.redirect(rick);
         res.render("error", {
             error: "No Query Specified"
         })
-        //console.log(`Rick Rolled ${req.ip}`);
     }
-
-
 })
 
-app.get("/repos", async (req, res) => {
-    const username = req.query.username || "MatchaOnMuffins";
-    try {
-        const result = await axios.get(
-            `https://api.github.com/users/${username}/repos`
-        );
-        //console.log(result);
-        const repos = result.data.map((repo) => ({
-            name: repo.name,
-            url: repo.html_url,
-            description: repo.description,
-        }));
-        res.render("repos", {
-            repos
-        });
-    } catch (error) {
-        console.log(error);
-        res.status(400).send("Error while getting list of repositories");
-    }
-});
 
 const options = {
-    key: fs.readFileSync('auth/key.pem'),
-    cert: fs.readFileSync('auth/cert.pem')
+    key: fs.readFileSync('auth/key.pem'), cert: fs.readFileSync('auth/cert.pem')
 };
 
-app.use((req, res, next) => {
-    res.status(404).render('404');
+app.use((req, res) => {
+    // res.status(404).render('404');
+    res.status(404).sendFile(`${__dirname}/pages/404.html`);
 })
 
-local_http.use((req, res, next) => {
-    res.status(404).render('404');
+local_http.use((req, res) => {
+    res.status(404).sendFile(`${__dirname}/pages/404.html`);
 })
 
 
 const server = https.createServer(options, app);
 
+
 server.listen(port, () => {
-    console.log(`Youtube downloader listening on port ${port}`)
+    console.log(`YouTube downloader listening on port ${port}`)
 })
 
-local_http.listen(80,()=>{
-    console.log('LoopBack Server listing on port 80');
+local_http.listen(PORT, () => {
+    console.log(`LoopBack Server listing on port ${PORT}`);
 })
 
