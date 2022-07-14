@@ -9,8 +9,8 @@ const ffmpeg = require("ffmpeg-static");
 const app = express();
 const axios = require('axios');
 const bodyParser = require("body-parser");
-const https = require("https");
-const port = process.env.NODE_PORT || 443;
+// const https = require("https");
+const port = process.env.NODE_PORT || 8080;
 app.use(bodyParser.urlencoded({extended: false}));
 app.set('trust proxy', true)
 app.use(express.static('public'));
@@ -197,7 +197,7 @@ app.get('/download', function (req, res) {
             let filename = `${__dirname}/download/${queryObject.v}.mkv`;
             try {
                 if (fs.existsSync(filename)) {
-                    console.log('Sending File' + filename);
+                    // console.log('Sending File' + filename);
                     res.download(filename);
                 }
             } catch (err) {
@@ -217,9 +217,7 @@ app.get('/download', function (req, res) {
 })
 
 
-const options = {
-    key: fs.readFileSync('auth/key.pem'), cert: fs.readFileSync('auth/cert.pem')
-};
+
 
 app.use((req, res) => {
     // res.status(404).render('404');
@@ -230,11 +228,20 @@ local_http.use((req, res) => {
     res.status(404).sendFile(`${__dirname}/pages/404.html`);
 })
 
+/*
+const options = {
+    key: fs.readFileSync('auth/key.pem'), cert: fs.readFileSync('auth/cert.pem')
+};
 
 const server = https.createServer(options, app);
 
 
 server.listen(port, () => {
+    console.log(`YouTube downloader listening on port ${port}`)
+})
+
+ */
+app.listen(port, () => {
     console.log(`YouTube downloader listening on port ${port}`)
 })
 
